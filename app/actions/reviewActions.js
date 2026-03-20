@@ -5,7 +5,6 @@ import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Course from '@/models/Course'
 import { auth } from '@/lib/auth'
-import DOMPurify from 'isomorphic-dompurify'
 
 export async function submitReview(courseId, lang, formData) {
   const session = await auth()
@@ -20,8 +19,7 @@ export async function submitReview(courseId, lang, formData) {
     const ratingFun = parseInt(formData.get('ratingFun') || '0')
     const ratingWorkload = parseInt(formData.get('ratingWorkload') || '0')
     const ratingDifficulty = parseInt(formData.get('ratingDifficulty') || '0')
-    const rawComment = formData.get('comment') || ''
-    const comment = DOMPurify.sanitize(rawComment)
+    const comment = formData.get('comment') || ''
     const isAnonymous = formData.get('isAnonymous') === 'on'
     const userId = session.user.id || session.user.email
 
