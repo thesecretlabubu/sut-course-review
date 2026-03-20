@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { unstable_noStore as noStore } from 'next/cache'
 import { connectDB } from '@/lib/mongodb'

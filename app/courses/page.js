@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { connectDB } from '@/lib/mongodb'
 import Course from '@/models/Course'
