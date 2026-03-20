@@ -10,6 +10,10 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 export const metadata = {
   title: 'SUT Course Review | รีวิววิชา มทส',
   description: 'แพลตฟอร์มรีวิวรายวิชาโดยนักศึกษามหาวิทยาลัยเทคโนโลยีสุรนารี เพื่อช่วยเพื่อนๆ ตัดสินใจลงทะเบียน',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 }
 
 export default async function RootLayout({ children }) {
