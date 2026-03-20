@@ -8,6 +8,8 @@ import StarRating from '@/app/components/StarRating'
 import UpvoteButton from '@/app/components/UpvoteButton'
 import ReportButton from '@/app/components/ReportButton'
 import { auth } from '@/lib/auth'
+import { getDictionary } from '@/lib/i18n'
+import LoginButton from '@/app/components/LoginButton'
 
 async function getData(id) {
   noStore()   // always fetch fresh after review submissions
@@ -27,11 +29,11 @@ async function getData(id) {
   }
 }
 
-function timeAgo(date) {
+function timeAgo(date, dict) {
   const diff = (Date.now() - new Date(date)) / 1000
-  if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`
-  if (diff < 86400) return `${Math.floor(diff / 3600)} ชม. ที่แล้ว`
-  return `${Math.floor(diff / 86400)} วันที่แล้ว`
+  if (diff < 3600) return `${Math.floor(diff / 60)} ${dict.common.minutesAgo}`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ${dict.common.hoursAgo}`
+  return `${Math.floor(diff / 86400)} ${dict.common.daysAgo}`
 }
 
 const gradeColors = {
@@ -46,20 +48,22 @@ const gradeColors = {
 }
 
 export default async function CourseDetail({ params }) {
-  // Next.js 16: params is a Promise — must await
-  const { id } = await params
+  const { id, lang } = await params
+  const dict = await getDictionary(lang)
   const session = await auth()
   const data = await getData(id)
+
+  const t = dict.courseDetail
 
   if (!data) {
     return (
       <div className="min-h-screen flex items-center justify-center p-8 bg-[#f3f4f5]">
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
           <span className="material-symbols-outlined text-5xl text-slate-300 block mb-4">school</span>
-          <h1 className="text-2xl font-bold text-[#191c1d] mb-2">ไม่พบวิชา</h1>
-          <p className="text-slate-400 text-sm mb-6">กรุณาตรวจสอบลิงก์อีกครั้ง</p>
-          <Link href="/courses" className="bg-[#006b2c] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#00873a] transition-all text-sm">
-            กลับไปหน้ารายวิชา
+          <h1 className="text-2xl font-bold text-[#191c1d] mb-2">{t.notFound}</h1>
+          <p className="text-slate-400 text-sm mb-6">{t.checkLink}</p>
+          <Link href={`/${lang}/courses`} className="bg-[#006b2c] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#00873a] transition-all text-sm">
+            {t.backToCourses}
           </Link>
         </div>
       </div>
@@ -75,9 +79,9 @@ export default async function CourseDetail({ params }) {
   const avgDifficulty = count > 0 ? reviews.reduce((s, r) => s + (r.ratingDifficulty || 0), 0) / count : 0
 
   // Grade distribution
-  const grades = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F']
+  const gradesArray = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F']
   const dist = {}
-  grades.forEach(g => { dist[g] = 0 })
+  gradesArray.forEach(g => { dist[g] = 0 })
   reviews.forEach(r => { if (r.gradeReceived && dist[r.gradeReceived] !== undefined) dist[r.gradeReceived]++ })
   const maxDist = Math.max(...Object.values(dist), 1)
 
@@ -87,9 +91,9 @@ export default async function CourseDetail({ params }) {
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-[#6e7b6c] mb-6 flex-wrap">
-          <Link href="/" className="hover:text-[#006b2c] transition-colors">หน้าแรก</Link>
+          <Link href={`/${lang}`} className="hover:text-[#006b2c] transition-colors">{t.home}</Link>
           <span className="material-symbols-outlined text-xs">chevron_right</span>
-          <Link href="/courses" className="hover:text-[#006b2c] transition-colors">วิชาทั้งหมด</Link>
+          <Link href={`/${lang}/courses`} className="hover:text-[#006b2c] transition-colors">{t.allCourses}</Link>
           <span className="material-symbols-outlined text-xs">chevron_right</span>
           <span className="font-semibold text-[#191c1d]">{course.code}</span>
         </nav>
@@ -104,11 +108,11 @@ export default async function CourseDetail({ params }) {
                 <div>
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <span className="bg-[#baecbc] text-[#006b2c] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                      {course.category || 'ทั่วไป'}
+                      {dict.common.categories[course.category] || course.category || t.general}
                     </span>
                     {course.credits && (
                       <span className="bg-[#e7e8e9] text-[#3e4a3d] text-xs font-bold px-3 py-1 rounded-full">
-                        {course.credits} หน่วยกิต
+                        {course.credits} {t.credits}
                       </span>
                     )}
                   </div>
@@ -124,16 +128,16 @@ export default async function CourseDetail({ params }) {
                     {avgFun > 0 ? avgFun.toFixed(1) : '—'}
                   </div>
                   <StarRating rating={avgFun} size="md" />
-                  <p className="text-xs text-[#6e7b6c] mt-1">จาก {count} รีวิว</p>
+                  <p className="text-xs text-[#6e7b6c] mt-1">{t.from} {count} {t.reviewsCount}</p>
                 </div>
               </div>
 
               {/* Sub-score bars */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 {[
-                  { label: '⭐ ความสนุก', val: avgFun },
-                  { label: '📚 ปริมาณงาน', val: avgWorkload },
-                  { label: '🧠 ความยาก', val: avgDifficulty },
+                  { label: `⭐ ${t.fun}`, val: avgFun },
+                  { label: `📚 ${t.workload}`, val: avgWorkload },
+                  { label: `🧠 ${t.difficulty}`, val: avgDifficulty },
                 ].map(({ label, val }) => (
                   <div key={label} className="space-y-2">
                     <div className="flex justify-between text-sm font-medium">
@@ -155,13 +159,13 @@ export default async function CourseDetail({ params }) {
             <section className="bg-white p-8 rounded-xl shadow-sm">
               <h2 className="text-lg font-bold text-[#191c1d] mb-6 flex items-center gap-2" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
                 <span className="material-symbols-outlined text-[#006b2c]">analytics</span>
-                การกระจายเกรด
+                {t.gradeDist}
               </h2>
               {count > 0 ? (
                 <div className="px-2">
                   {/* Bars */}
                   <div className="flex items-end gap-2" style={{ height: '160px' }}>
-                    {grades.map(g => {
+                    {gradesArray.map(g => {
                       const val = dist[g]
                       const barH = val > 0 ? Math.max(12, Math.round((val / maxDist) * 160)) : 4
                       return (
@@ -183,7 +187,7 @@ export default async function CourseDetail({ params }) {
                   </div>
                   {/* Grade labels */}
                   <div className="flex gap-2 mt-2">
-                    {grades.map(g => (
+                    {gradesArray.map(g => (
                       <div key={g} className="flex-1 text-center">
                         <span className="text-xs font-bold text-[#3e4a3d]">{g}</span>
                       </div>
@@ -191,14 +195,14 @@ export default async function CourseDetail({ params }) {
                   </div>
                 </div>
               ) : (
-                <p className="text-center text-[#6e7b6c] text-sm py-8">ยังไม่มีข้อมูลเกรด</p>
+                <p className="text-center text-[#6e7b6c] text-sm py-8">{t.noGradeData}</p>
               )}
             </section>
 
             {/* ── Reviews ── */}
             <section className="space-y-4">
               <h2 className="text-xl font-bold text-[#191c1d]" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
-                บทวิจารณ์จากนักศึกษา ({count})
+                {t.studentReviews} ({count})
               </h2>
 
               {reviews.length > 0 ? reviews.map(review => (
@@ -210,10 +214,10 @@ export default async function CourseDetail({ params }) {
                       </div>
                       <div>
                         <h4 className="font-bold text-sm text-[#191c1d]">
-                          {review.isAnonymous ? 'นักศึกษา (ไม่ระบุชื่อ)' : (review.userName || 'นักศึกษา')}
+                          {review.isAnonymous ? dict.common.anonymous : (review.userName || 'นักศึกษา')}
                         </h4>
                         <p className="text-xs text-[#6e7b6c]">
-                          เทอม {review.semester || '—'} · {review.createdAt ? timeAgo(review.createdAt) : ''}
+                          {t.semester} {review.semester || '—'} · {review.createdAt ? timeAgo(review.createdAt, dict) : ''}
                         </p>
                       </div>
                     </div>
@@ -221,7 +225,7 @@ export default async function CourseDetail({ params }) {
                       <StarRating rating={review.ratingFun || 0} size="sm" />
                       {review.gradeReceived && (
                         <span className={`text-xs font-bold px-3 py-0.5 rounded-full ${gradeColors[review.gradeReceived] || 'bg-[#edeeef] text-[#3e4a3d]'}`}>
-                          เกรด {review.gradeReceived}
+                          {t.gradeLabel} {review.gradeReceived}
                         </span>
                       )}
                     </div>
@@ -229,13 +233,13 @@ export default async function CourseDetail({ params }) {
 
                   {/* Mini sub-scores */}
                   <div className="flex gap-4 mb-3 text-xs text-[#6e7b6c]">
-                    <span>สนุก: <strong className="text-[#006b2c]">{review.ratingFun || '?'}</strong></span>
-                    <span>งาน: <strong className="text-[#006b2c]">{review.ratingWorkload || '?'}</strong></span>
-                    <span>ยาก: <strong className="text-[#006b2c]">{review.ratingDifficulty || '?'}</strong></span>
+                    <span>{t.fun}: <strong className="text-[#006b2c]">{review.ratingFun || '?'}</strong></span>
+                    <span>{t.workload}: <strong className="text-[#006b2c]">{review.ratingWorkload || '?'}</strong></span>
+                    <span>{t.difficulty}: <strong className="text-[#006b2c]">{review.ratingDifficulty || '?'}</strong></span>
                   </div>
 
                   <p className="text-sm leading-relaxed text-[#191c1d] mb-4">
-                    {review.comment || 'ไม่มีความคิดเห็นเพิ่มเติม'}
+                    {review.comment || t.noComment}
                   </p>
 
                   <div className="flex items-center justify-between border-t border-[#edeeef] pt-3">
@@ -246,7 +250,7 @@ export default async function CourseDetail({ params }) {
               )) : (
                 <div className="bg-white rounded-xl p-12 text-center text-[#6e7b6c] shadow-sm">
                   <span className="material-symbols-outlined text-4xl block mb-3">rate_review</span>
-                  <p>ยังไม่มีรีวิวสำหรับวิชานี้ เป็นคนแรกที่รีวิว!</p>
+                  <p>{t.noReviewsYet}</p>
                 </div>
               )}
             </section>
@@ -259,25 +263,23 @@ export default async function CourseDetail({ params }) {
               <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover/cta:scale-110 transition-transform duration-700" />
               <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-black/10 rounded-full blur-3xl" />
               <h3 className="text-2xl font-extrabold text-white mb-3 relative z-10" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
-                เคยเรียนวิชานี้แล้วใช่ไหม?
+                {t.everStudied}
               </h3>
               <p className="text-green-100 mb-8 relative z-10 max-w-lg mx-auto text-sm">
-                แบ่งปันประสบการณ์การเรียนของคุณเพื่อช่วยให้เพื่อนๆ ตัดสินใจได้ดียิ่งขึ้น
+                {t.shareExp}
               </p>
               {session ? (
                 <Link
-                  href={`/courses/${id}/write-review`}
+                  href={`/${lang}/courses/${id}/write-review`}
                   className="relative z-10 inline-flex items-center gap-2 bg-white text-[#006b2c] hover:bg-green-50 font-bold px-10 py-3 rounded-xl shadow-lg transition-all active:scale-95"
                 >
-                  เขียนรีวิว <span className="material-symbols-outlined">edit_square</span>
+                  {t.writeReview} <span className="material-symbols-outlined">edit_square</span>
                 </Link>
               ) : (
-                <Link
-                  href="/api/auth/signin"
+                <LoginButton
+                  label={t.loginToReview}
                   className="relative z-10 inline-flex items-center gap-2 bg-white text-[#006b2c] hover:bg-green-50 font-bold px-10 py-3 rounded-xl shadow-lg transition-all active:scale-95"
-                >
-                  Login เพื่อเขียนรีวิว <span className="material-symbols-outlined">login</span>
-                </Link>
+                />
               )}
             </section>
 
@@ -287,42 +289,41 @@ export default async function CourseDetail({ params }) {
           <aside className="hidden lg:block lg:col-span-4 space-y-4">
             <div className="bg-white p-6 rounded-xl shadow-sm sticky top-24">
               <h3 className="font-bold text-[#191c1d] mb-4" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
-                ข้อมูลวิชา
+                {t.courseInfo}
               </h3>
               <ul className="space-y-3 text-sm">
-                <li className="flex justify-between">
-                  <span className="text-[#6e7b6c]">รหัสวิชา</span>
+                <li className="flex justify-between gap-4">
+                  <span className="text-[#6e7b6c] whitespace-nowrap">{t.courseCode}</span>
                   <span className="font-bold text-[#191c1d]">{course.code}</span>
                 </li>
-                <li className="flex justify-between">
-                  <span className="text-[#6e7b6c]">หน่วยกิต</span>
-                  <span className="font-bold text-[#191c1d]">{course.credits || 3} หน่วยกิต</span>
+                <li className="flex justify-between gap-4">
+                  <span className="text-[#6e7b6c] whitespace-nowrap">{t.credits}</span>
+                  <span className="font-bold text-[#191c1d]">{course.credits || 3} {t.credits}</span>
                 </li>
-                <li className="flex justify-between">
-                  <span className="text-[#6e7b6c]">หมวดหมู่</span>
-                  <span className="font-bold text-[#191c1d] text-right max-w-[60%]">{course.category}</span>
+                <li className="flex justify-between gap-4">
+                  <span className="text-[#6e7b6c] whitespace-nowrap">{t.category}</span>
+                  <span className="font-bold text-[#191c1d] text-right">{dict.common.categories[course.category] || course.category || t.general}</span>
                 </li>
-                <li className="flex justify-between">
-                  <span className="text-[#6e7b6c]">จำนวนรีวิว</span>
-                  <span className="font-bold text-[#191c1d]">{count} รีวิว</span>
+                <li className="flex justify-between gap-4">
+                  <span className="text-[#6e7b6c] whitespace-nowrap">{t.totalReviews}</span>
+                  <span className="font-bold text-[#191c1d]">{count} {t.reviewsCount}</span>
                 </li>
               </ul>
               <div className="mt-6 pt-6 border-t border-[#edeeef]">
                 {session ? (
                   <Link
-                    href={`/courses/${id}/write-review`}
+                    href={`/${lang}/courses/${id}/write-review`}
                     className="w-full flex items-center justify-center gap-2 bg-[#006b2c] text-white py-3 rounded-xl font-bold hover:bg-[#00873a] transition-all text-sm"
                   >
                     <span className="material-symbols-outlined text-sm">edit_square</span>
-                    เขียนรีวิว
+                    {t.writeReview}
                   </Link>
                 ) : (
-                  <Link
-                    href="/api/auth/signin"
+                  <LoginButton
+                    label={t.loginToReviewButton}
+                    icon={null}
                     className="w-full flex items-center justify-center gap-2 border-2 border-[#006b2c] text-[#006b2c] py-3 rounded-xl font-bold hover:bg-[#006b2c] hover:text-white transition-all text-sm"
-                  >
-                    Login เพื่อรีวิว
-                  </Link>
+                  />
                 )}
               </div>
             </div>

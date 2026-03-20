@@ -3,10 +3,31 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-export default function DeleteReviewButton({ courseCode, courseId }) {
+export default function DeleteReviewButton({ courseCode, courseId, lang }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [confirm, setConfirm] = useState(false)
+
+  const t = {
+    th: {
+      confirmMsg: 'ยืนยันลบรีวิว?',
+      deleteLabel: 'ลบรีวิวเพื่อเขียนใหม่',
+      deleting: 'กำลังลบ...',
+      error: 'เกิดข้อผิดพลาด'
+    },
+    en: {
+      confirmMsg: 'Confirm delete?',
+      deleteLabel: 'Delete review to rewrite',
+      deleting: 'Deleting...',
+      error: 'An error occurred'
+    },
+    zh: {
+      confirmMsg: '确认删除？',
+      deleteLabel: '删除评价以重写',
+      deleting: '正在删除...',
+      error: '发生错误'
+    }
+  }[lang] || { confirmMsg: 'Confirm?', deleteLabel: 'Delete', deleting: 'Deleting...', error: 'Error' }
 
   async function handleDelete() {
     if (!confirm) {
@@ -22,7 +43,7 @@ export default function DeleteReviewButton({ courseCode, courseId }) {
         router.refresh()
       } else {
         const data = await res.json()
-        alert(data.error || 'เกิดข้อผิดพลาด')
+        alert(data.error || t.error)
       }
     } finally {
       setLoading(false)
@@ -43,7 +64,7 @@ export default function DeleteReviewButton({ courseCode, courseId }) {
       <span className="material-symbols-outlined text-sm">
         {loading ? 'refresh' : 'delete'}
       </span>
-      {loading ? 'กำลังลบ...' : confirm ? 'ยืนยันลบรีวิว?' : 'ลบรีวิวเพื่อเขียนใหม่'}
+      {loading ? t.deleting : confirm ? t.confirmMsg : t.deleteLabel}
     </button>
   )
 }

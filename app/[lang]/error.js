@@ -2,12 +2,38 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export default function Error({ error, reset }) {
+  const pathname = usePathname()
+  const lang = pathname?.split('/')[1] || 'th'
+
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error('Root Error Boundary:', error)
   }, [error])
+
+  const labels = {
+    th: {
+      title: 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+      desc: 'ขออภัย ระบบไม่สามารถดึงข้อมูลได้ในขณะนี้ อาจเกิดจากปัญหาการเชื่อมต่อฐานข้อมูล กรุณาลองใหมีกครั้ง',
+      retry: 'ลองใหม่อีกครั้ง',
+      backHome: 'กลับหน้าแรก',
+    },
+    en: {
+      title: 'Connection Error',
+      desc: 'Sorry, we couldn’t fetch the data. This might be a database connection issue. Please try again.',
+      retry: 'Try Again',
+      backHome: 'Back to Home',
+    },
+    zh: {
+      title: '连接错误',
+      desc: '抱歉，系统暂时无法获取数据。这可能是由于数据库连接问题，请重试。',
+      retry: '重试',
+      backHome: '返回主页',
+    }
+  }
+
+  const { title, desc, retry, backHome } = labels[lang] || labels.en
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6 bg-[#f3f4f5]">
@@ -17,11 +43,11 @@ export default function Error({ error, reset }) {
         </div>
         
         <h1 className="text-3xl font-extrabold text-[#191c1d] mb-4" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
-          เกิดข้อผิดพลาดในการเชื่อมต่อ
+          {title}
         </h1>
         
         <p className="text-[#6e7b6c] mb-10 leading-relaxed text-lg">
-          ขออภัย ระบบไม่สามารถดึงข้อมูลได้ในขณะนี้ อาจเกิดจากปัญหาการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง
+          {desc}
         </p>
         
         <div className="flex flex-col gap-3">
@@ -29,14 +55,14 @@ export default function Error({ error, reset }) {
             onClick={() => reset()}
             className="w-full bg-[#006b2c] text-white py-4 rounded-xl font-bold hover:bg-[#00873a] transition-all shadow-lg hover:shadow-green-100 active:scale-95"
           >
-            ลองใหม่อีกครั้ง
+            {retry}
           </button>
           
           <Link
-            href="/"
-            className="w-full bg-[#f3f4f5] text-[#3e4a3d] py-4 rounded-xl font-bold hover:bg-[#e7e8e9] transition-all active:scale-95"
+            href={`/${lang}`}
+            className="w-full bg-[#f3f4f5] text-[#3e4a3d] py-4 rounded-xl font-bold hover:bg-[#e7e8e9] transition-all active:scale-95 text-center"
           >
-            กลับหน้าแรก
+            {backHome}
           </Link>
         </div>
 

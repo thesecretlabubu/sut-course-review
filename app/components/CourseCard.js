@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import StarRating from './StarRating'
+import { getDictionary } from '@/lib/i18n'
 
 const categoryColors = {
   'วิทยาศาสตร์และเทคโนโลยี': 'bg-green-100 text-green-700',
@@ -8,8 +9,10 @@ const categoryColors = {
   'ภาษา': 'bg-indigo-100 text-indigo-700',
 }
 
-export default function CourseCard({ course }) {
+export default async function CourseCard({ course, lang = 'th' }) {
+  const dict = await getDictionary(lang)
   const tagColor = categoryColors[course.category] || 'bg-slate-100 text-slate-600'
+  const displayCategory = dict.common.categories[course.category] || course.category
 
   return (
     <article className="bg-white p-6 rounded-xl hover:shadow-xl hover:shadow-black/5 transition-all duration-300 group flex flex-col justify-between border border-transparent hover:border-[#006b2c]/10 min-h-[220px]">
@@ -17,7 +20,7 @@ export default function CourseCard({ course }) {
         {/* Top row */}
         <div className="flex justify-between items-start mb-4">
           <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${tagColor}`}>
-            {course.category}
+            {displayCategory}
           </span>
           <div className="flex items-center gap-1 bg-[#e7e8e9] px-2 py-1 rounded-lg">
             <span className="material-symbols-outlined text-sm text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
@@ -38,13 +41,13 @@ export default function CourseCard({ course }) {
       <div className="flex items-center justify-between mt-4">
         <p className="text-slate-400 text-xs flex items-center gap-1">
           <span className="material-symbols-outlined text-xs">forum</span>
-          {course.totalReviews || 0} รีวิว
+          {course.totalReviews || 0} {dict.common.reviewsCount}
         </p>
         <Link
-          href={`/courses/${course._id}`}
+          href={`/${lang}/courses/${course._id}`}
           className="flex items-center gap-1 text-sm font-semibold text-[#006b2c] hover:text-[#00873a] group-hover:underline transition-colors"
         >
-          ดูรีวิว <span className="material-symbols-outlined text-sm">arrow_forward</span>
+          {lang === 'th' ? 'ดูรีวิว' : lang === 'zh' ? '查看评论' : 'View Reviews'} <span className="material-symbols-outlined text-sm">arrow_forward</span>
         </Link>
       </div>
     </article>

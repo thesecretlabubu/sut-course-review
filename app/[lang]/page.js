@@ -5,6 +5,7 @@ import Course from '@/models/Course'
 import Review from '@/models/Review'
 import CourseCard from '@/app/components/CourseCard'
 import StarRating from '@/app/components/StarRating'
+import { getDictionary } from '@/lib/i18n'
 
 async function getData() {
   await connectDB()
@@ -28,14 +29,16 @@ async function getData() {
   }
 }
 
-function timeAgo(date) {
+function timeAgo(date, dict) {
   const diff = (Date.now() - new Date(date)) / 1000
-  if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`
-  if (diff < 86400) return `${Math.floor(diff / 3600)} ชั่วโมงที่แล้ว`
-  return `${Math.floor(diff / 86400)} วันที่แล้ว`
+  if (diff < 3600) return `${Math.floor(diff / 60)} ${dict.common.minutesAgo}`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ${dict.common.hoursAgo}`
+  return `${Math.floor(diff / 86400)} ${dict.common.daysAgo}`
 }
 
-export default async function Home() {
+export default async function Home({ params }) {
+  const { lang } = await params
+  const dict = await getDictionary(lang)
   const { topCourses, recentReviews } = await getData()
 
   return (
@@ -44,24 +47,24 @@ export default async function Home() {
       <section className="hero-gradient relative overflow-hidden py-24 px-6">
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
-            รีวิววิชาสาระเพิ่มเติม มทส
+            {dict.common.homeTitle}
           </h1>
           <p className="text-green-100 text-lg md:text-xl mb-12">
-            ช่วยกันรีวิวเพื่อน้องๆ รุ่นต่อไป เพื่อการตัดสินใจลงทะเบียนที่แม่นยำขึ้น
+            {dict.common.homeSubtitle}
           </p>
-          <form action="/courses" method="GET" className="relative max-w-2xl mx-auto group">
+          <form action={`/${lang}/courses`} method="GET" className="relative max-w-2xl mx-auto group">
             <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
             <input
               name="q"
               type="text"
-              placeholder="ค้นหาวิชา เช่น IST101 หรือ ภาษาอังกฤษ..."
+              placeholder={dict.common.searchPlaceholder}
               className="w-full pl-14 pr-36 py-5 bg-white rounded-xl shadow-2xl focus:ring-2 focus:ring-[#006b2c] outline-none text-lg placeholder:text-slate-400"
             />
             <button
               type="submit"
               className="absolute right-3 top-2 bottom-2 bg-[#006b2c] text-white px-8 rounded-lg font-bold hover:bg-[#00873a] transition-all"
             >
-              ค้นหา
+              {dict.common.search}
             </button>
           </form>
         </div>
@@ -81,24 +84,23 @@ export default async function Home() {
         <section>
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold flex items-center gap-3" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
-              <span className="text-yellow-500"></span> วิชายอดนิยม
+              <span className="text-yellow-500"></span> {dict.common.popularCourses}
             </h2>
-            <Link href="/courses?sort=rating" className="text-[#006b2c] font-semibold hover:underline flex items-center gap-1 text-sm">
-              ดูทั้งหมด <span className="material-symbols-outlined text-sm">chevron_right</span>
+            <Link href={`/${lang}/courses?sort=rating`} className="text-[#006b2c] font-semibold hover:underline flex items-center gap-1 text-sm">
+              {dict.common.viewAll} <span className="material-symbols-outlined text-sm">chevron_right</span>
             </Link>
           </div>
 
           {topCourses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {topCourses.map(course => (
-                <CourseCard key={course._id} course={course} />
+                <CourseCard key={course._id} course={course} lang={lang} />
               ))}
             </div>
           ) : (
             <div className="bg-white rounded-xl p-12 text-center text-slate-400">
               <span className="material-symbols-outlined text-4xl block mb-3">school</span>
-              <p>ยังไม่มีวิชาในระบบ</p>
-              <p className="text-sm mt-1">กรุณารัน seed script เพื่อเพิ่มข้อมูลวิชา</p>
+              <p>{dict.common.noCourses}</p>
             </div>
           )}
         </section>
@@ -107,7 +109,7 @@ export default async function Home() {
         <section>
           <div className="mb-8">
             <h2 className="text-3xl font-bold flex items-center gap-3" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
-              รีวิวล่าสุด
+              {dict.common.recentReviews}
             </h2>
           </div>
 
@@ -122,11 +124,11 @@ export default async function Home() {
                       </div>
                       <div>
                         <p className="font-bold text-sm text-[#191c1d]">
-                          {review.isAnonymous ? 'นักศึกษา (ไม่ระบุชื่อ)' : (review.userName || 'นักศึกษา')}
+                          {review.isAnonymous ? dict.common.anonymous : (review.userName || 'นักศึกษา')}
                         </p>
                         <p className="text-xs text-[#6e7b6c]">
                           รีวิววิชา {review.courseCode}
-                          {review.createdAt && ` • ${timeAgo(review.createdAt)}`}
+                          {review.createdAt && ` • ${timeAgo(review.createdAt, dict)}`}
                         </p>
                       </div>
                     </div>
@@ -141,7 +143,7 @@ export default async function Home() {
           ) : (
             <div className="bg-white rounded-xl p-12 text-center text-slate-400">
               <span className="material-symbols-outlined text-4xl block mb-3">rate_review</span>
-              <p>ยังไม่มีรีวิวในระบบ</p>
+              <p>{dict.common.noReviews}</p>
             </div>
           )}
         </section>
@@ -150,12 +152,12 @@ export default async function Home() {
       {/* FAB */}
       <div className="fixed bottom-8 right-8 z-40 group">
         <Link
-          href="/courses"
+          href={`/${lang}/courses`}
           className="bg-[#006b2c] text-white p-4 rounded-full shadow-2xl flex items-center gap-2 hover:pr-6 transition-all active:scale-95"
         >
           <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>edit_square</span>
           <span className="max-w-0 overflow-hidden group-hover:max-w-[100px] transition-all duration-300 font-bold whitespace-nowrap text-sm">
-            เขียนรีวิว
+            {dict.common.writeReview}
           </span>
         </Link>
       </div>

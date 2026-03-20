@@ -1,5 +1,5 @@
 import { Inter } from 'next/font/google'
-import './globals.css'
+import '../globals.css'
 import Navbar from '@/app/components/Navbar'
 import Footer from '@/app/components/Footer'
 import SessionProvider from '@/app/components/SessionProvider'
@@ -16,10 +16,16 @@ export const metadata = {
   },
 }
 
-export default async function RootLayout({ children }) {
+export async function generateStaticParams() {
+  return [{ lang: 'th' }, { lang: 'en' }, { lang: 'zh' }]
+}
+
+export default async function RootLayout({ children, params }) {
+  const { lang } = await params
   const session = await auth()
+  
   return (
-    <html lang="th" className={inter.variable} suppressHydrationWarning>
+    <html lang={lang} className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -30,11 +36,11 @@ export default async function RootLayout({ children }) {
       </head>
       <body className="min-h-screen flex flex-col bg-[#f3f4f5] text-[#191c1d]" suppressHydrationWarning>
         <SessionProvider session={session}>
-          <Navbar />
+          <Navbar lang={lang} />
           <main className="flex-1 pt-16">
             {children}
           </main>
-          <Footer />
+          <Footer lang={lang} />
         </SessionProvider>
       </body>
     </html>
