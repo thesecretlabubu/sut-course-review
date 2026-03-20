@@ -1,65 +1,163 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { connectDB } from '@/lib/mongodb'
+import Course from '@/models/Course'
+import Review from '@/models/Review'
+import CourseCard from '@/app/components/CourseCard'
+import StarRating from '@/app/components/StarRating'
 
-export default function Home() {
+async function getData() {
+  await connectDB()
+  const [topCourses, recentReviews] = await Promise.all([
+    Course.find({ totalReviews: { $gte: 0 } })
+      .sort({ avgRating: -1 })
+      .limit(6)
+      .lean(),
+    Review.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean(),
+  ])
+  return {
+    topCourses: topCourses.map(c => ({ ...c, _id: c._id.toString() })),
+    recentReviews: recentReviews.map(r => ({
+      ...r,
+      _id: r._id.toString(),
+      createdAt: r.createdAt ? r.createdAt.toISOString() : null,
+    })),
+  }
+}
+
+function timeAgo(date) {
+  const diff = (Date.now() - new Date(date)) / 1000
+  if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ชั่วโมงที่แล้ว`
+  return `${Math.floor(diff / 86400)} วันที่แล้ว`
+}
+
+export default async function Home() {
+  const { topCourses, recentReviews } = await getData()
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
+    <div className="bg-[#f3f4f5]">
+      {/* ── Hero ── */}
+      <section className="hero-gradient relative overflow-hidden py-24 px-6">
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
+            รีวิววิชาสาระเพิ่มเติม มทส
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-green-100 text-lg md:text-xl mb-12">
+            ช่วยกันรีวิวเพื่อน้องๆ รุ่นต่อไป เพื่อการตัดสินใจลงทะเบียนที่แม่นยำขึ้น
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+          <form action="/courses" method="GET" className="relative max-w-2xl mx-auto group">
+            <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
+            <input
+              name="q"
+              type="text"
+              placeholder="ค้นหาวิชา เช่น IST101 หรือ ภาษาอังกฤษ..."
+              className="w-full pl-14 pr-36 py-5 bg-white rounded-xl shadow-2xl focus:ring-2 focus:ring-[#006b2c] outline-none text-lg placeholder:text-slate-400"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <button
+              type="submit"
+              className="absolute right-3 top-2 bottom-2 bg-[#006b2c] text-white px-8 rounded-lg font-bold hover:bg-[#00873a] transition-all"
+            >
+              ค้นหา
+            </button>
+          </form>
         </div>
-      </main>
+        {/* Decorative circles */}
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 opacity-20 pointer-events-none">
+          <div className="w-96 h-96 rounded-full border-[40px] border-white/30" />
+        </div>
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 opacity-10 pointer-events-none">
+          <div className="w-[500px] h-[500px] rounded-full bg-white/40" />
+        </div>
+      </section>
+
+      {/* ── Content ── */}
+      <div className="max-w-7xl mx-auto px-6 py-16 space-y-20">
+
+        {/* Popular Courses */}
+        <section>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold flex items-center gap-3" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
+              <span className="text-yellow-500"></span> วิชายอดนิยม
+            </h2>
+            <Link href="/courses?sort=rating" className="text-[#006b2c] font-semibold hover:underline flex items-center gap-1 text-sm">
+              ดูทั้งหมด <span className="material-symbols-outlined text-sm">chevron_right</span>
+            </Link>
+          </div>
+
+          {topCourses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {topCourses.map(course => (
+                <CourseCard key={course._id} course={course} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl p-12 text-center text-slate-400">
+              <span className="material-symbols-outlined text-4xl block mb-3">school</span>
+              <p>ยังไม่มีวิชาในระบบ</p>
+              <p className="text-sm mt-1">กรุณารัน seed script เพื่อเพิ่มข้อมูลวิชา</p>
+            </div>
+          )}
+        </section>
+
+        {/* Recent Reviews */}
+        <section>
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold flex items-center gap-3" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
+              รีวิวล่าสุด
+            </h2>
+          </div>
+
+          {recentReviews.length > 0 ? (
+            <div className="space-y-4">
+              {recentReviews.map(review => (
+                <article key={review._id} className="bg-white p-6 rounded-xl border-l-4 border-[#006b2c] shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#baecbc] flex items-center justify-center text-[#006b2c] flex-shrink-0">
+                        <span className="material-symbols-outlined text-sm">person</span>
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-[#191c1d]">
+                          {review.isAnonymous ? 'นักศึกษา (ไม่ระบุชื่อ)' : (review.userName || 'นักศึกษา')}
+                        </p>
+                        <p className="text-xs text-[#6e7b6c]">
+                          รีวิววิชา {review.courseCode}
+                          {review.createdAt && ` • ${timeAgo(review.createdAt)}`}
+                        </p>
+                      </div>
+                    </div>
+                    <StarRating rating={review.ratingFun || 0} size="sm" />
+                  </div>
+                  <p className="text-sm text-slate-700 leading-relaxed italic">
+                    "{review.comment || 'ไม่มีความคิดเห็นเพิ่มเติม'}"
+                  </p>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl p-12 text-center text-slate-400">
+              <span className="material-symbols-outlined text-4xl block mb-3">rate_review</span>
+              <p>ยังไม่มีรีวิวในระบบ</p>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* FAB */}
+      <div className="fixed bottom-8 right-8 z-40 group">
+        <Link
+          href="/courses"
+          className="bg-[#006b2c] text-white p-4 rounded-full shadow-2xl flex items-center gap-2 hover:pr-6 transition-all active:scale-95"
+        >
+          <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>edit_square</span>
+          <span className="max-w-0 overflow-hidden group-hover:max-w-[100px] transition-all duration-300 font-bold whitespace-nowrap text-sm">
+            เขียนรีวิว
+          </span>
+        </Link>
+      </div>
     </div>
-  );
+  )
 }
