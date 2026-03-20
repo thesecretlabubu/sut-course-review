@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+@import "tailwindcss";
+
+:root {
+  --primary: #006b2c;
+  --primary-container: #00873a;
+  --on-primary: #ffffff;
+  --on-primary-container: #f7fff2;
+  --secondary: #3b6842;
+  --secondary-container: #baecbc;
+  --on-secondary-container: #406c46;
+  --surface: #f8f9fa;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f3f4f5;
+  --surface-container: #edeeef;
+  --surface-container-high: #e7e8e9;
+  --on-surface: #191c1d;
+  --on-surface-variant: #3e4a3d;
+  --outline: #6e7b6c;
+  --outline-variant: #bdcaba;
+  --background: #f8f9fa;
+  --error: #ba1a1a;
+  --tertiary: #a72d51;
+  --tertiary-container: #c74668;
+  --tertiary-fixed: #ffd9de;
+  --on-tertiary-fixed: #3f0016;
+  --on-tertiary-fixed-variant: #8a143c;
+  --primary-fixed: #7ffc97;
+  --primary-fixed-dim: #62df7d;
+  --on-primary-fixed: #002109;
+  --on-primary-fixed-variant: #005320;
+}
+
+body {
+  font-family: 'Inter', 'Sarabun', Arial, sans-serif;
+  background: var(--background);
+  color: var(--on-surface);
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #006b2c 0%, #00873a 100%);
+}
+
+/* Smooth hover animations */
+* {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #006b2c; }
+
+/* Skeleton loading animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #e7e8e9 25%, #f0f1f2 50%, #e7e8e9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
