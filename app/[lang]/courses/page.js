@@ -171,6 +171,36 @@ export default async function CoursesPage({ params, searchParams }) {
             {sort && <input type="hidden" name="sort" value={sort} />}
           </form>
 
+          {/* Mobile Categories (Horizontal Scroll) */}
+          <div className="lg:hidden w-full overflow-x-auto hide-scrollbar pb-2 -mx-1 px-1">
+            <div className="flex gap-2 w-max">
+              <Link
+                href={`/${lang}/courses?sort=${sort}${q ? `&q=${q}` : ''}`}
+                className={`text-xs px-4 py-2 rounded-full font-bold transition-all whitespace-nowrap ${!category ? 'bg-[#006b2c] text-white' : 'bg-white border border-[#e1e3e4] text-slate-600 hover:bg-slate-50'}`}
+              >
+                {t.all}
+              </Link>
+              {CATEGORIES.map(cat => {
+                const p = new URLSearchParams({ category: cat.th, sort })
+                if (q) p.set('q', q)
+                return (
+                  <Link
+                    key={cat.th}
+                    href={`/${lang}/courses?${p}`}
+                    className={`text-xs px-4 py-2 rounded-full font-bold transition-all whitespace-nowrap ${category === cat.th ? 'bg-[#006b2c] text-white shadow-md shadow-[#006b2c]/20' : 'bg-white border border-[#e1e3e4] text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[14px]">
+                        {cat.icon}
+                      </span>
+                      {cat[lang] || cat.en}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1d]" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
@@ -180,22 +210,6 @@ export default async function CoursesPage({ params, searchParams }) {
                 {q ? `${t.resultsFor} "${q}" — ` : ''}
                 {t.showing} {courses.length} {t.items}
               </p>
-            </div>
-
-            {/* Mobile category pills */}
-            <div className="flex lg:hidden gap-2 flex-wrap max-w-[200px] justify-end">
-              {CATEGORIES.map(cat => {
-                const p = new URLSearchParams({ category: cat.th, sort })
-                return (
-                  <Link
-                    key={cat.th}
-                    href={`/${lang}/courses?${p}`}
-                    className={`text-[10px] px-2 py-1 rounded-full font-medium transition-colors ${category === cat.th ? 'bg-[#006b2c] text-white' : 'bg-white border border-[#e1e3e4] text-slate-500'}`}
-                  >
-                    {cat[lang] || cat.en}
-                  </Link>
-                )
-              })}
             </div>
           </div>
         </div>
