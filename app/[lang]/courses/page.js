@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { connectDB } from '@/lib/mongodb'
 import Course from '@/models/Course'
 import CourseCard from '@/app/components/CourseCard'
+import MobileFilterDrawer from '@/app/components/MobileFilterDrawer'
 import { getDictionary } from '@/lib/i18n'
 
 const CATEGORIES = [
@@ -101,7 +102,7 @@ export default async function CoursesPage({ params, searchParams }) {
   return (
     <div className="flex min-h-screen bg-[#f3f4f5]">
       {/* ── Sidebar ── */}
-      <aside className="hidden lg:flex flex-col gap-1 w-64 shrink-0 p-6 bg-white border-r border-[#e1e3e4] sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+      <aside className="hidden md:flex flex-col gap-1 w-64 shrink-0 p-6 bg-white border-r border-[#e1e3e4] sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
         <div className="mb-6">
           <h2 className="font-bold text-[#191c1d] text-lg" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>{t.category}</h2>
           <p className="text-xs text-[#6e7b6c]">{t.filterBy}</p>
@@ -154,52 +155,40 @@ export default async function CoursesPage({ params, searchParams }) {
       </aside>
 
       {/* ── Main ── */}
-      <main className="flex-1 p-6 md:p-8">
+      <main className="flex-1 min-w-0 p-4 md:p-8">
         {/* Search + Header */}
         <div className="mb-8 space-y-4">
-          <form method="GET" action={`/${lang}/courses`} className="relative group">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-            <input
-              name="q"
-              type="text"
-              defaultValue={q}
-              placeholder={t.searchPlaceholder}
-              className="w-full bg-white border border-[#e1e3e4] focus:ring-2 focus:ring-[#006b2c] rounded-xl py-4 pl-12 pr-4 shadow-sm text-sm md:text-base outline-none transition-all"
-            />
-            {/* pass through hidden fields */}
-            {category && <input type="hidden" name="category" value={category} />}
-            {sort && <input type="hidden" name="sort" value={sort} />}
-          </form>
-
-          {/* Mobile Categories (Horizontal Scroll) */}
-          <div className="lg:hidden w-full overflow-x-auto hide-scrollbar pb-2 -mx-1 px-1">
-            <div className="flex gap-2 w-max">
-              <Link
-                href={`/${lang}/courses?sort=${sort}${q ? `&q=${q}` : ''}`}
-                className={`text-xs px-4 py-2 rounded-full font-bold transition-all whitespace-nowrap ${!category ? 'bg-[#006b2c] text-white' : 'bg-white border border-[#e1e3e4] text-slate-600 hover:bg-slate-50'}`}
+          {/* Desktop Search */}
+          <div className="hidden md:block">
+            <form method="GET" action={`/${lang}/courses`} className="relative group max-w-2xl">
+              <span className="material-symbols-outlined absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
+              <input
+                name="q"
+                type="text"
+                defaultValue={q}
+                placeholder={t.searchPlaceholder}
+                className="w-full pl-12 sm:pl-14 pr-16 sm:pr-36 py-4 sm:py-5 bg-white rounded-xl shadow-sm border border-[#e1e3e4] focus:ring-2 focus:ring-[#006b2c] outline-none text-base sm:text-lg"
+              />
+              {category && <input type="hidden" name="category" value={category} />}
+              {sort && <input type="hidden" name="sort" value={sort} />}
+              <button
+                type="submit"
+                className="absolute right-2 top-2 bottom-2 bg-[#006b2c] text-white px-8 rounded-lg font-bold hover:bg-[#00873a] transition-all flex items-center justify-center"
               >
-                {t.all}
-              </Link>
-              {CATEGORIES.map(cat => {
-                const p = new URLSearchParams({ category: cat.th, sort })
-                if (q) p.set('q', q)
-                return (
-                  <Link
-                    key={cat.th}
-                    href={`/${lang}/courses?${p}`}
-                    className={`text-xs px-4 py-2 rounded-full font-bold transition-all whitespace-nowrap ${category === cat.th ? 'bg-[#006b2c] text-white shadow-md shadow-[#006b2c]/20' : 'bg-white border border-[#e1e3e4] text-slate-600 hover:bg-slate-50'}`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[14px]">
-                        {cat.icon}
-                      </span>
-                      {cat[lang] || cat.en}
-                    </span>
-                  </Link>
-                )
-              })}
-            </div>
+                <span>{t.searchPlaceholder.split(" ")[0]}</span>
+              </button>
+            </form>
           </div>
+
+          {/* Mobile Search & Filter Drawer */}
+          <MobileFilterDrawer 
+            lang={lang} 
+            t={t} 
+            CATEGORIES={CATEGORIES} 
+            initialQ={q} 
+            initialCategory={category} 
+            initialSort={sort} 
+          />
 
           <div className="flex items-center justify-between">
             <div>
@@ -216,7 +205,7 @@ export default async function CoursesPage({ params, searchParams }) {
 
         {/* Grid */}
         {courses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {courses.map(course => (
               <CourseCard key={course._id} course={course} lang={lang} />
             ))}

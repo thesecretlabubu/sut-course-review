@@ -35,6 +35,7 @@ body {
   font-family: 'Inter', 'Sarabun', Arial, sans-serif;
   background: var(--background);
   color: var(--on-surface);
+  overflow-x: hidden;
 }
 
 .material-symbols-outlined {
@@ -80,4 +81,13 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
+}
+
+/* Hide scrollbar for mobile UI */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }

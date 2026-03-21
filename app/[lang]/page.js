@@ -7,6 +7,13 @@ import CourseCard from '@/app/components/CourseCard'
 import StarRating from '@/app/components/StarRating'
 import { getDictionary } from '@/lib/i18n'
 
+const CATEGORIES = [
+  { th: 'วิทยาศาสตร์และเทคโนโลยี', en: 'Science & Technology', zh: '科学与技术', icon: 'science', color: 'bg-green-100 text-[#006b2c] border-green-200 hover:bg-[#006b2c] hover:text-white' },
+  { th: 'มนุษยศาสตร์', en: 'Humanities', zh: '人文科学', icon: 'auto_stories', color: 'bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-600 hover:text-white' },
+  { th: 'สังคมศาสตร์', en: 'Social Sciences', zh: '社会科学', icon: 'groups', color: 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-600 hover:text-white' },
+  { th: 'ภาษา', en: 'Languages', zh: '语言', icon: 'translate', color: 'bg-indigo-100 text-indigo-700 border-indigo-200 hover:bg-indigo-600 hover:text-white' },
+]
+
 async function getData() {
   await connectDB()
   const [topCourses, recentReviews] = await Promise.all([
@@ -53,18 +60,19 @@ export default async function Home({ params }) {
             {dict.common.homeSubtitle}
           </p>
           <form action={`/${lang}/courses`} method="GET" className="relative max-w-2xl mx-auto group">
-            <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
+            <span className="material-symbols-outlined absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
             <input
               name="q"
               type="text"
               placeholder={dict.common.searchPlaceholder}
-              className="w-full pl-14 pr-36 py-5 bg-white rounded-xl shadow-2xl focus:ring-2 focus:ring-[#006b2c] outline-none text-lg placeholder:text-slate-400"
+              className="w-full pl-12 sm:pl-14 pr-16 sm:pr-36 py-4 sm:py-5 bg-white rounded-xl shadow-2xl focus:ring-2 focus:ring-[#006b2c] outline-none text-base sm:text-lg placeholder:text-slate-400"
             />
             <button
               type="submit"
-              className="absolute right-3 top-2 bottom-2 bg-[#006b2c] text-white px-8 rounded-lg font-bold hover:bg-[#00873a] transition-all"
+              className="absolute right-2 top-2 bottom-2 bg-[#006b2c] text-white w-12 sm:w-auto sm:px-8 rounded-lg font-bold hover:bg-[#00873a] transition-all flex items-center justify-center"
             >
-              {dict.common.search}
+              <span className="hidden sm:inline">{dict.common.search}</span>
+              <span className="material-symbols-outlined sm:hidden">search</span>
             </button>
           </form>
         </div>

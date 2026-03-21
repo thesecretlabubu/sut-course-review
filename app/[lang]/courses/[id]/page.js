@@ -286,7 +286,7 @@ export default async function CourseDetail({ params }) {
           </article>
 
           {/* Sidebar */}
-          <aside className="hidden lg:block lg:col-span-4 space-y-4">
+          <aside className="lg:col-span-4 space-y-4">
             <div className="bg-white p-6 rounded-xl shadow-sm sticky top-24">
               <h3 className="font-bold text-[#191c1d] mb-4" style={{ fontFamily: 'Manrope, Sarabun, sans-serif' }}>
                 {t.courseInfo}
